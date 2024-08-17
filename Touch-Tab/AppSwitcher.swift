@@ -1,27 +1,29 @@
-import Cocoa
+import Foundation
 
 class AppSwitcher {
-    private static let keyboardEventSource = CGEventSource(stateID: CGEventSourceStateID.hidSystemState)
-    private static let tabKey = CGKeyCode(0x30);
-    private static let leftCommandKey = CGKeyCode(0x37);
-
-    static func selectInAppSwitcher() {
-        postKeyEvent(key: leftCommandKey, down: false)
+    
+    private static let aerospace = "aerospace";
+    
+    static func jumpPrevSpace() {
+        shell("\(aerospace) workspace \"$(\(aerospace) list-workspaces --monitor mouse --visible)\" && \(aerospace) workspace prev")
     }
-
-    static func cmdTab() {
-        postKeyEvent(key: tabKey, down: true, flags: .maskCommand)
-        postKeyEvent(key: tabKey, down: false, flags: .maskCommand)
+    
+    static func jumpNextSpace() {
+        shell("\(aerospace) workspace \"$(\(aerospace) list-workspaces --monitor mouse --visible)\" && \(aerospace) workspace next")
     }
-
-    static func cmdShiftTab() {
-        postKeyEvent(key: tabKey, down: true, flags: [.maskCommand, .maskShift])
-        postKeyEvent(key: tabKey, down: false, flags: [.maskCommand, .maskShift])
-    }
-
-    private static func postKeyEvent(key: CGKeyCode, down: Bool, flags: CGEventFlags = []) {
-        let event = CGEvent(keyboardEventSource: keyboardEventSource, virtualKey: key, keyDown: down)
-        event?.flags = flags
-        event?.post(tap: CGEventTapLocation.cghidEventTap)
+    
+    private static func shell(_ command: String) {
+        let task = Process()
+        
+        task.arguments = ["-cl", command]
+        task.launchPath = "/bin/zsh"
+        task.standardInput = nil
+        task.launch()
+        
+        do {
+            try task.run()
+        } catch  {
+            debugPrint("command failed! \(error)")
+        }
     }
 }
